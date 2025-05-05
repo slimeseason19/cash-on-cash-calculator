@@ -137,6 +137,7 @@
   <label>Monthly Property Management Fee (%): <input type="number" id="managementFeeRate"></label>
   <label>Estimated Annual Repairs: $<input type="number" id="estimatedRepairs"></label>
   <label>Monthly Insurance: $<input type="number" id="monthlyInsurance"></label>
+  <label>Monthly Property Tax: $<input type="number" id="monthlyPropertyTax"></label>
   <label>Monthly Mortgage Payment: $<input type="number" id="monthlyMortgage"></label>
 
   <div class="buttons">
@@ -212,6 +213,7 @@ function calculate() {
   const estimatedRepairs = +document.getElementById('estimatedRepairs')?.value || 0;
   const monthlyInsurance = +document.getElementById('monthlyInsurance')?.value || 0;
   const monthlyMortgage = +document.getElementById('monthlyMortgage')?.value || 0;
+  const monthlyPropertyTax = +document.getElementById('monthlyPropertyTax')?.value || 0
 
   const totalCash = downPayment + closingCosts + renovationCosts;
 
@@ -228,7 +230,7 @@ function calculate() {
     const monthlyCapex = rent * capexRate;
     const monthlyManagementFee = rent * managementFeeRate;
 
-    const monthlyCashFlow = effectiveMonthlyRent - monthlyMortgage - monthlyInsurance - monthlyRepairs - monthlyCapex - (repairs / 12) - monthlyManagementFee;
+    const monthlyCashFlow = effectiveMonthlyRent - monthlyMortgage - monthlyInsurance - monthlyPropertyTax - monthlyRepairs - monthlyCapex - (repairs / 12) - monthlyManagementFee;
     const annualCashFlow = monthlyCashFlow * 12;
 
     cashFlows.push(annualCashFlow);
