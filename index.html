@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash-on-Cash Return Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    .container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 960px;
+      margin: 20px auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    body.dark .container {
+      background: #1e1e1e;
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+    }
+    h1, h3, h4 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input[type="number"], input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+    }
+    body.dark input, body.dark textarea {
+      background-color: #2c2c2c;
+      border: 1px solid #444;
+      color: #e0e0e0;
+    }
+    .buttons {
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+    button {
+      padding: 12px 20px;
+      margin: 8px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .results, .summary {
+      background: #e9f7ef;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 30px;
+      border: 1px solid #c3e6cb;
+    }
+    body.dark .results, body.dark .summary {
+      background: #2c2c2c;
+      border: 1px solid #444;
+    }
+    canvas {
+      display: block;
+      max-width: 100%;
+      margin: 40px auto;
+    }
+    .photo-upload {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+    .photo-upload:hover {
+      background-color: #f1f1f1;
+    }
+    #uploadedPhoto {
+      margin-top: 15px;
+      max-width: 100%;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h1>Investment Summary Report</h1>
+
+  <div class="photo-upload" id="photoUploadArea" onclick="document.getElementById('photoInput').click();">
+    <p>📸 Click or Drag & Drop Property Photo Here</p>
+    <img id="uploadedPhoto">
+    <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="previewPhoto(event)">
+  </div>
+
+  <label for="propertyAddress">Property Address:</label>
+  <input type="text" id="propertyAddress" placeholder="123 Main St, City, State">
+
+  <label for="propertyDescription">Property Description:</label>
+  <textarea id="propertyDescription" rows="4" placeholder="Enter property details here (e.g., 4BR, 3BA, 2500 sqft, built 2018)"></textarea>
+
+  <label for="purchasePrice">Purchase Price: $</label>
+  <input type="number" id="purchasePrice">
+
+  <label for="downPayment">Down Payment: $</label>
+  <input type="number" id="downPayment">
+
+  <label for="closingCosts">Closing Costs: $</label>
+  <input type="number" id="closingCosts">
+
+  <label for="renovationCosts">Renovation Costs: $</label>
+  <input type="number" id="renovationCosts">
+
+  <label for="monthlyRent">Monthly Rent: $</label>
+  <input type="number" id="monthlyRent">
+
+  <label for="incomeGrowthRate">Annual Income Growth Rate (%):</label>
+  <input type="number" id="incomeGrowthRate">
+
+  <label for="pvGrowthRate">Annual Property Value Growth Rate (%):</label>
+  <input type="number" id="pvGrowthRate">
+
+  <label for="expensesGrowthRate">Annual Expenses Growth Rate (%):</label>
+  <input type="number" id="expensesGrowthRate">
+
+  <label for="vacancyRate">Monthly Vacancy Rate (%):</label>
+  <input type="number" id="vacancyRate">
+
+  <label for="repairsRate">Monthly Repairs (%):</label>
+  <input type="number" id="repairsRate">
+
+  <label for="capexRate">Monthly CapEx (%):</label>
+  <input type="number" id="capexRate">
+
+  <label for="managementFeeRate">Monthly Property Management Fee (%):</label>
+  <input type="number" id="managementFeeRate">
+
+  <label for="estimatedRepairs">Estimated Annual Repairs: $</label>
+  <input type="number" id="estimatedRepairs">
+
+  <label for="monthlyInsurance">Monthly Insurance: $</label>
+  <input type="number" id="monthlyInsurance">
+
+  <label for="monthlyPropertyTax">Monthly Property Tax: $</label>
+  <input type="number" id="monthlyPropertyTax">
+
+  <label for="monthlyMortgage">Monthly Mortgage Payment: $</label>
+  <input type="number" id="monthlyMortgage">
+
+  <div class="buttons">
+    <button onclick="toggleDark()">Toggle Dark Mode</button>
+    <button onclick="resetFields()">Reset Fields</button>
+    <button onclick="downloadCSV()">Download CSV</button>
+    <button onclick="printSummary()">Print Summary</button>
+  </div>
+
+  <div class="results">
+    <h2>Results:</h2>
+    <p id="totalCash">Total Cash Invested: $0.00</p>
+    <p id="annualCashFlow">Annual Pre-Tax Cash Flow: $0.00</p>
+    <p id="cashOnCash">Cash-on-Cash Return: 0.00%</p>
+    <p id="futurePropertyValue">Estimated Property Value (1 Year): $0.00</p>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <canvas id="overviewChart"></canvas>
+  <canvas id="growthChart"></canvas>
+</div>
+
+<script>
+let chart1, chart2;
+const inputs = document.querySelectorAll('input[type="number"], input[type="text"], input[type="file"], textarea');
+inputs.forEach(input => input.addEventListener('input', calculate));
+
+function toggleDark() {
+  document.body.classList.toggle('dark');
+}
+function resetFields() {
+  inputs.forEach(i => i.value = '');
+  document.getElementById('uploadedPhoto').style.display = 'none';
+  calculate();
+}
+function downloadCSV() {
+  let content = "Year,Annual Cash Flow,Property Value\n";
+  for (let i = 0; i < 10; i++) content += `Year ${i+1},${cashFlows[i]},${propertyValues[i]}\n`;
+  const link = document.createElement('a');
+  link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
+  link.download = 'investment_summary.csv';
+  link.click();
+}
+function printSummary() {
+  const content = document.getElementById('summary').innerHTML;
+  const w = window.open('', '', 'width=800,height=600');
+  w.document.write('<html><head><title>Summary</title></head><body>' + content + '</body></html>');
+  w.document.close();
+  w.print();
+}
+function previewPhoto(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById('uploadedPhoto');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+let cashFlows = [], propertyValues = [];
+
+function calculate() {
+  const purchasePrice = +document.getElementById('purchasePrice')?.value || 0;
+  const downPayment = +document.getElementById('downPayment')?.value || 0;
+  const closingCosts = +document.getElementById('closingCosts')?.value || 0;
+  const renovationCosts = +document.getElementById('renovationCosts')?.value || 0;
+  const monthlyRent = +document.getElementById('monthlyRent')?.value || 0;
+  const incomeGrowthRate = +document.getElementById('incomeGrowthRate')?.value / 100 || 0;
+  const pvGrowthRate = +document.getElementById('pvGrowthRate')?.value / 100 || 0;
+  const expensesGrowthRate = +document.getElementById('expensesGrowthRate')?.value / 100 || 0;
+  const vacancyRate = +document.getElementById('vacancyRate')?.value / 100 || 0;
+  const repairsRate = +document.getElementById('repairsRate')?.value / 100 || 0;
+  const capexRate = +document.getElementById('capexRate')?.value / 100 || 0;
+  const managementFeeRate = +document.getElementById('managementFeeRate')?.value / 100 || 0;
+  const estimatedRepairs = +document.getElementById('estimatedRepairs')?.value || 0;
+  const monthlyInsurance = +document.getElementById('monthlyInsurance')?.value || 0;
+  const monthlyPropertyTax = +document.getElementById('monthlyPropertyTax')?.value || 0;
+  const monthlyMortgage = +document.getElementById('monthlyMortgage')?.value || 0;
+
+  const totalCash = downPayment + closingCosts + renovationCosts;
+
+  cashFlows = [];
+  propertyValues = [];
+  let rent = monthlyRent, value = purchasePrice, repairs = estimatedRepairs;
+  for (let year = 1; year <= 10; year++) {
+    rent *= 1 + incomeGrowthRate;
+    value *= 1 + pvGrowthRate;
+    repairs *= 1 + expensesGrowthRate;
+
+    const effectiveMonthlyRent = rent * (1 - vacancyRate);
+    const monthlyRepairs = rent * repairsRate;
+    const monthlyCapex = rent * capexRate;
+    const monthlyManagementFee = rent * managementFeeRate;
+
+    const monthlyCashFlow = effectiveMonthlyRent - monthlyMortgage - monthlyInsurance - monthlyPropertyTax - monthlyRepairs - monthlyCapex - (repairs / 12) - monthlyManagementFee;
+    const annualCashFlow = monthlyCashFlow * 12;
+
+    cashFlows.push(annualCashFlow);
+    propertyValues.push(value);
+  }
+
+  document.getElementById('totalCash').innerText = `Total Cash Invested: $${totalCash.toFixed(2)}`;
+  document.getElementById('annualCashFlow').innerText = `Annual Pre-Tax Cash Flow: $${cashFlows[0].toFixed(2)}`;
+  document.getElementById('cashOnCash').innerText = `Cash-on-Cash Return: ${(cashFlows[0] / totalCash * 100 || 0).toFixed(2)}%`;
+  document.getElementById('futurePropertyValue').innerText = `Estimated Property Value (1 Year): $${propertyValues[0].toFixed(2)}`;
+
+  document.getElementById('summary').innerHTML = `
+    <div style="text-align:center; margin-bottom:20px;">
+      ${document.getElementById('uploadedPhoto').src ? `<img src="${document.getElementById('uploadedPhoto').src}" style="max-width:300px; border-radius:8px; margin-bottom:15px;">` : ''}
+      <h2>${document.getElementById('propertyAddress').value || '[Insert Property Address Here]'}</h2>
+      <p style="font-style:italic;">${document.getElementById('propertyDescription').value || '[Insert Property Description Here]'}</p>
+    </div>
+    <h2>Financial Summary</h2>
+    <p><b>Total Cash Invested:</b> $${totalCash.toFixed(2)}</p>
+    <p><b>Year 1 Annual Cash Flow:</b> $${cashFlows[0].toFixed(2)}</p>
+    <p><b>Year 1 Property Value:</b> $${propertyValues[0].toFixed(2)}</p>
+    <p><b>Cash-on-Cash Return:</b> ${(cashFlows[0] / totalCash * 100 || 0).toFixed(2)}%</p>
+  `;
+
+  if (chart1) chart1.destroy();
+  chart1 = new Chart(document.getElementById('overviewChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Cash Invested', 'Year 1 Cash Flow', 'Year 1 Property Value'],
+      datasets: [{label: 'Overview', data: [totalCash, cashFlows[0], propertyValues[0]], backgroundColor: ['#4caf50', '#00c853', '#ffd600']}]
+    }
+  });
+
+  if (chart2) chart2.destroy();
+  chart2 = new Chart(document.getElementById('growthChart'), {
+    type: 'line',
+    data: {
+      labels: [...Array(10).keys()].map(i => `Year ${i+1}`),
+      datasets: [
+        {label: 'Annual Cash Flow', data: cashFlows, borderColor: '#00c853', fill: false, tension: 0.4},
+        {label: 'Property Value', data: propertyValues, borderColor: '#ffd600', fill: false, tension: 0.4}
+      ]
+    }
+  });
+}
+</script>
+
+</body>
+</html>
